@@ -283,26 +283,33 @@ function actualizar(v){
         }
     });
 
-    /* 🌤️🌫️ FONDO DINÁMICO NATURAL */
+    /* 🌤️🌫️ FONDO DINÁMICO MEJORADO */
 
-// 0 = contaminación total, 1 = aire limpio
-let t = silencio / 100;
+// nivel de silencio (0 a 1)
+let limpio = silencio / 100;
 
-/* 🎨 COLORES BASE */
-let cieloLimpio = [135, 206, 250];   // celeste bonito
-let cieloSucio = [210, 180, 120];    // café/amarillo (smog)
+// contar nubes sucias
+let nubesSucias = nubes.filter(n => n.classList.contains("sucia")).length;
+let factorNubes = nubesSucias / nubes.length;
 
-/* interpolación suave */
+// combinar factores (más realista)
+let t = limpio * (1 - factorNubes);
+
+/* 🎨 COLORES */
+let cieloLimpio = [135, 206, 250];   // azul cielo
+let cieloSucio = [160, 140, 90];     // café amarilloso fuerte
+
+// interpolación
 let r = cieloSucio[0] + (cieloLimpio[0] - cieloSucio[0]) * t;
 let g = cieloSucio[1] + (cieloLimpio[1] - cieloSucio[1]) * t;
 let b = cieloSucio[2] + (cieloLimpio[2] - cieloSucio[2]) * t;
 
-/* parte baja del cielo */
-let r2 = r + 20;
+// parte inferior más intensa
+let r2 = r + 30;
 let g2 = g + 20;
 let b2 = b;
 
-/* aplicar fondo */
+/* aplicar */
 document.body.style.background = `
 linear-gradient(
     rgb(${r}, ${g}, ${b}),
