@@ -89,7 +89,6 @@ body {
     width: 30px;
     height: 30px;
 }
-
 .margarita .petalo {
     position: absolute;
     width: 6px;
@@ -100,7 +99,6 @@ body {
     transform-origin: center -8px;
     border: 1px solid rgba(0,0,0,0.3);
 }
-
 .blanca .petalo { background: white; }
 .amarilla .petalo { background: gold; }
 
@@ -127,7 +125,7 @@ body {
 
 <!-- 🎧 AUDIO -->
 <audio id="musica" loop>
-    <source src="music.mp3" type="audio/mpeg">
+    <source src="musica.mp3" type="audio/mpeg">
 </audio>
 
 <audio id="ruido" loop>
@@ -138,6 +136,11 @@ body {
 let suavizado = 0;
 let plantas = [];
 let nubes = [];
+
+/* 🎨 COLOR SUAVE (ARREGLA TU ERROR) */
+let rSuave = 135;
+let gSuave = 206;
+let bSuave = 250;
 
 function lerp(a,b,t){ return a+(b-a)*t; }
 
@@ -222,7 +225,6 @@ async function iniciar(){
     const musica = document.getElementById("musica");
     const ruido = document.getElementById("ruido");
 
-    // 🔑 activar audio con click
     document.body.addEventListener("click", () => {
         musica.play();
         ruido.play();
@@ -248,11 +250,10 @@ function actualizar(v, musica, ruido){
 
     document.getElementById("nivel").style.height=Math.min(v*2,100)+"%";
 
-    /* 🎧 AUDIO DINÁMICO */
+    /* 🎧 AUDIO */
     let nivel = silencio / 100;
-
-    musica.volume = nivel * 0.8;     // sube con silencio
-    ruido.volume = (1 - nivel) * 0.5; // sube con ruido
+    musica.volume = nivel * 0.8;
+    ruido.volume = (1 - nivel) * 0.5;
 
     /* 🌱 PLANTAS */
     plantas.forEach(p=>{
@@ -282,10 +283,7 @@ function actualizar(v, musica, ruido){
     /* ☁️ NUBES */
     nubes.forEach(n=>{
         let actual=parseFloat(n.style.top);
-
-        let objetivo=silencio>60
-            ? 30+Math.random()*40
-            : 150+Math.random()*120;
+        let objetivo=silencio>60 ? 30+Math.random()*40 : 150+Math.random()*120;
 
         n.style.top=lerp(actual,objetivo,0.02)+"px";
 
@@ -296,33 +294,27 @@ function actualizar(v, musica, ruido){
         }
     });
 
-    /* 🌤️ FONDO ULTRA SUAVE */
+    /* 🌤️ FONDO SUAVE */
+    let limpio = silencio / 100;
+    let nubesSucias = nubes.filter(n => n.classList.contains("sucia")).length;
+    let t = limpio * (1 - nubesSucias / nubes.length);
 
-// factores
-let limpio = silencio / 100;
-let nubesSucias = nubes.filter(n => n.classList.contains("sucia")).length;
-let t = limpio * (1 - nubesSucias / nubes.length);
+    let limpioColor = [135,206,250];
+    let sucioColor = [255,214,98];
 
-/* 🎨 colores base */
-let limpioColor = [135, 206, 250];   // azul
-let sucioColor = [255, 214, 98];     // amarillo
+    let rTarget = sucioColor[0] + (limpioColor[0]-sucioColor[0])*t;
+    let gTarget = sucioColor[1] + (limpioColor[1]-sucioColor[1])*t;
+    let bTarget = sucioColor[2] + (limpioColor[2]-sucioColor[2])*t;
 
-/* 🎯 color objetivo */
-let rTarget = sucioColor[0] + (limpioColor[0] - sucioColor[0]) * t;
-let gTarget = sucioColor[1] + (limpioColor[1] - sucioColor[1]) * t;
-let bTarget = sucioColor[2] + (limpioColor[2] - sucioColor[2]) * t;
+    rSuave = lerp(rSuave, rTarget, 0.03);
+    gSuave = lerp(gSuave, gTarget, 0.03);
+    bSuave = lerp(bSuave, bTarget, 0.03);
 
-/* 🧠 SUAVIZADO REAL (clave) */
-rSuave = lerp(rSuave, rTarget, 0.03);
-gSuave = lerp(gSuave, gTarget, 0.03);
-bSuave = lerp(bSuave, bTarget, 0.03);
-
-/* fondo */
-document.body.style.background = `
-linear-gradient(
-    rgb(${rSuave}, ${gSuave}, ${bSuave}),
-    rgb(${rSuave+30}, ${gSuave+20}, ${bSuave})
-)`;
+    document.body.style.background = `
+    linear-gradient(
+        rgb(${rSuave},${gSuave},${bSuave}),
+        rgb(${rSuave+30},${gSuave+20},${bSuave})
+    )`;
 }
 
 iniciar();
