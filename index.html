@@ -296,23 +296,33 @@ function actualizar(v, musica, ruido){
         }
     });
 
-    /* 🌤️ FONDO */
-    let limpio = silencio / 100;
-    let nubesSucias = nubes.filter(n => n.classList.contains("sucia")).length;
-    let t = limpio * (1 - nubesSucias / nubes.length);
+    /* 🌤️ FONDO ULTRA SUAVE */
 
-    let limpioColor = [135,206,250];
-    let sucioColor = [255,214,98];
+// factores
+let limpio = silencio / 100;
+let nubesSucias = nubes.filter(n => n.classList.contains("sucia")).length;
+let t = limpio * (1 - nubesSucias / nubes.length);
 
-    let r = sucioColor[0] + (limpioColor[0]-sucioColor[0])*t;
-    let g = sucioColor[1] + (limpioColor[1]-sucioColor[1])*t;
-    let b = sucioColor[2] + (limpioColor[2]-sucioColor[2])*t;
+/* 🎨 colores base */
+let limpioColor = [135, 206, 250];   // azul
+let sucioColor = [255, 214, 98];     // amarillo
 
-    document.body.style.background = `
-    linear-gradient(
-        rgb(${r},${g},${b}),
-        rgb(${r+30},${g+20},${b})
-    )`;
+/* 🎯 color objetivo */
+let rTarget = sucioColor[0] + (limpioColor[0] - sucioColor[0]) * t;
+let gTarget = sucioColor[1] + (limpioColor[1] - sucioColor[1]) * t;
+let bTarget = sucioColor[2] + (limpioColor[2] - sucioColor[2]) * t;
+
+/* 🧠 SUAVIZADO REAL (clave) */
+rSuave = lerp(rSuave, rTarget, 0.03);
+gSuave = lerp(gSuave, gTarget, 0.03);
+bSuave = lerp(bSuave, bTarget, 0.03);
+
+/* fondo */
+document.body.style.background = `
+linear-gradient(
+    rgb(${rSuave}, ${gSuave}, ${bSuave}),
+    rgb(${rSuave+30}, ${gSuave+20}, ${bSuave})
+)`;
 }
 
 iniciar();
