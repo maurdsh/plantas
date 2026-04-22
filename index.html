@@ -3,11 +3,12 @@
 <head>
 <meta charset="UTF-8">
 <title>Ambiente Natural Vivo</title>
+
 <style>
-    border: 1px solid rgba(0,0,0,0.25);
 body {
     margin: 0;
     overflow: hidden;
+    height: 100vh;
     font-family: Arial;
     transition: background 2s ease;
 }
@@ -37,57 +38,32 @@ body {
     background: linear-gradient(#4caf50, #ffeb3b, #f44336);
     transition: height 0.5s ease;
 }
-/* 🌱 TALLO */
-.planta {
-    border: 1px solid rgba(0,0,0,0.4); /* ligero */
-}
 
-/* 🌿 HOJAS */
-.hoja {
-    border: 1px solid rgba(0,0,0,0.4);
-}
-
-/* 🌷 TULIPÁN */
-.tulipan .petalo {
-    border: 1px solid rgba(0,0,0,0.4);
-}
-
-/* 🌼 MARGARITA */
-.margarita .petalo {
-    border: 1px solid rgba(0,0,0,0.4);
-}
-
-.margarita .centro {
-    border: 1px solid rgba(0,0,0,0.4);
-}
-
-/* 🌺 FLOR SIMPLE */
-.simple {
-    border: 1px solid rgba(0,0,0,0.4);
-}
 /* 🌱 PLANTA */
 .planta {
     position: absolute;
     bottom: 0;
     width: 12px;
     border-radius: 12px;
-    transform-origin: bottom;
+    border: 1px solid rgba(0,0,0,0.3);
+    transform-origin: bottom center;
     animation: viento 3s ease-in-out infinite;
 }
 
-/* 🌬️ VIENTO MÁS NOTORIO */
+/* 🌬️ VIENTO */
 @keyframes viento {
     0% { transform: rotate(0deg); }
     50% { transform: rotate(4deg); }
     100% { transform: rotate(0deg); }
 }
 
-/* HOJAS */
+/* 🌿 HOJAS */
 .hoja {
     position: absolute;
     width: 26px;
     height: 12px;
     border-radius: 50%;
+    border: 1px solid rgba(0,0,0,0.3);
 }
 
 /* 🌷 TULIPÁN */
@@ -100,6 +76,7 @@ body {
     height: 25px;
     border-radius: 50% 50% 30% 30%;
     position: absolute;
+    border: 1px solid rgba(0,0,0,0.3);
 }
 .tulipan .p1 { left:0; transform: rotate(-20deg); }
 .tulipan .p2 { left:8px; }
@@ -109,6 +86,8 @@ body {
 .margarita {
     position: absolute;
     top: -30px;
+    width: 30px;
+    height: 30px;
 }
 .margarita .petalo {
     width: 6px;
@@ -116,6 +95,7 @@ body {
     background: white;
     border-radius: 50%;
     position: absolute;
+    border: 1px solid rgba(0,0,0,0.3);
 }
 .margarita .centro {
     width: 10px;
@@ -123,8 +103,10 @@ body {
     background: gold;
     border-radius: 50%;
     position: absolute;
-    left: 8px;
-    top: 6px;
+    border: 1px solid rgba(0,0,0,0.3);
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
 }
 
 /* 🌺 FLOR SIMPLE */
@@ -134,6 +116,7 @@ body {
     height: 20px;
     border-radius: 50%;
     top: -25px;
+    border: 1px solid rgba(0,0,0,0.3);
 }
 
 /* ☁️ NUBES */
@@ -152,19 +135,20 @@ body {
 }
 </style>
 </head>
+
 <body>
 
 <div id="mensaje">Haz ruido o guarda silencio 🎤</div>
 <div id="barra"><div id="nivel"></div></div>
 
 <script>
-let suavizado=0;
-let plantas=[];
-let nubes=[];
+let suavizado = 0;
+let plantas = [];
+let nubes = [];
 
-function lerp(a,b,t){return a+(b-a)*t;}
+function lerp(a,b,t){ return a+(b-a)*t; }
 
-/* 🌱 PLANTAS */
+/* 🌱 CREAR PLANTAS */
 for(let i=0;i<6;i++){
     let p=document.createElement("div");
     p.className="planta";
@@ -192,7 +176,7 @@ for(let i=0;i<6;i++){
     nubes.push(n);
 }
 
-/* 🌸 GENERADOR DE FLORES */
+/* 🌸 FLORES */
 function crearFlor(){
     let tipo=Math.floor(Math.random()*3);
     let colores=["#ff4d6d","#ff85a1","#f72585","#b5179e","#7209b7"];
@@ -230,6 +214,7 @@ function crearFlor(){
     return f;
 }
 
+/* 🎤 MICRO */
 async function iniciar(){
     const stream=await navigator.mediaDevices.getUserMedia({audio:true});
     const ctx=new AudioContext();
@@ -246,8 +231,8 @@ async function iniciar(){
         let vol=data.reduce((a,b)=>a+b,0)/data.length;
 
         suavizado=lerp(suavizado,vol,0.05);
-
         actualizar(suavizado);
+
         requestAnimationFrame(loop);
     }
     loop();
@@ -256,11 +241,12 @@ async function iniciar(){
 function actualizar(v){
     let silencio=Math.max(0,100-v*2);
 
-    document.getElementById("mensaje").innerText=
-        silencio>60?"Silencio 🌱 Aire limpio":"Ruido 😷 Contaminación";
+    document.getElementById("mensaje").innerText =
+        silencio>60 ? "Silencio 🌱 Aire limpio" : "Ruido 😷 Contaminación";
 
     document.getElementById("nivel").style.height=Math.min(v*2,100)+"%";
 
+    /* 🌱 PLANTAS */
     plantas.forEach(p=>{
         let altura=lerp(parseFloat(p.style.height)||0,silencio*3,0.08);
         p.style.height=altura+"px";
@@ -285,6 +271,7 @@ function actualizar(v){
         }
     });
 
+    /* ☁️ NUBES */
     nubes.forEach(n=>{
         let actual=parseFloat(n.style.top);
 
@@ -301,9 +288,14 @@ function actualizar(v){
         }
     });
 
-    document.body.style.background=`linear-gradient(
-        rgb(${200-silencio/2},${220-silencio/3},255),
-        rgb(${230-silencio/2},${255-silencio/4},255)
+    /* 🌤️ FONDO SUAVE */
+    let cielo = 220 + silencio * 0.2;
+    let suelo = 240 + silencio * 0.1;
+
+    document.body.style.background = `
+    linear-gradient(
+        rgb(${cielo}, ${cielo+10}, 255),
+        rgb(${suelo}, ${suelo+5}, ${suelo})
     )`;
 }
 
