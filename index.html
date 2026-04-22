@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Ambiente Suave</title>
+<style>
+body {
+    margin: 0;
+    overflow: hidden;
+    font-family: Arial;
+    transition: background 2s ease;
+}
+
+/* TEXTO */
+#mensaje {
+    position: absolute;
+    top: 20px;
+    width: 100%;
+    text-align: center;
+    font-size: 22px;
+    color: #333;
+    transition: opacity 1s;
+}
+
+/* BARRA */
+#barra {
+    position: fixed;
+    right: 0;
+    top: 0;
+    width: 25px;
+    height: 100vh;
+    background: rgba(0,0,0,0.08);
+}
+#nivel {
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    height: 10%;
+    background: linear-gradient(#4caf50, #ffeb3b, #f44336);
+    transition: height 0.5s ease;
+}
+
+/* PLANTAS */
+.planta {
+    position: absolute;
+    bottom: 0;
+    width: 10px;
+    border-radius: 10px;
+    transition: all 1s ease;
+}
+
+.hoja {
+    position: absolute;
+    width: 18px;
+    height: 10px;
+    border-radius: 50%;
+    transition: background 1s;
+}
+
+.flor {
+    position: absolute;
+    width: 14px;
+    height: 14px;
+    background: pink;
+    border-radius: 50%;
+    top: -10px;
+    animation: aparecer 1s ease;
+}
+
+@keyframes aparecer {
+    from { opacity: 0; transform: scale(0.5);}
+    to { opacity: 1; transform: scale(1);}
+}
+
+/* NUBES (AHORA SI VISIBLES) */
+.nube {
+    position: absolute;
+    width: 140px;
+    height: 70px;
+    background: white;
+    border-radius: 100px;
+    opacity: 0.85;
+    filter: blur(2px);
+    transition: top 2s ease;
+}
+</style>
+</head>
+<body>
+
+<div id="mensaje">Haz ruido o guarda silencio 🎤</div>
+
+<div id="barra"><div id="nivel"></div></div>
+
+<script>
+let suavizado = 0;
+let plantas = [];
+let nubes = [];
+
+/* LERP (suavizado real) */
+function lerp(a, b, t) {
+    return a + (b - a) * t;
+}
+
+/* CREAR PLANTAS */
+for (let i = 0; i < 6; i++) {
+    let p = document.createElement("div");
+    p.className = "planta";
+    p.style.left = (i * 15 + 10) + "%";
+
+    let h1 = document.createElement("div");
+    h1.className = "hoja";
+    h1.style.left = "-15px";
+    h1.style.top = "20px";
+
+    let h2 = document.createElement("div");
+    h2.className = "hoja";
+    h2.style.right = "-15px";
+    h2.style.top = "40px";
+
+    p.appendChild(h1);
+    p.appendChild(h2);
+
+    document.body.appendChild(p);
+    plantas.push(p);
+}
+
+/* CREAR NUBES (POSICIÓN CORREGIDA) */
+for (let i = 0; i < 4; i++) {
+    let n = document.createElement("div");
+    n.className = "nube";
+    n.style.left = (i * 25) + "%";
+    n.style.top = (50 + i * 20) + "px"; // visibles desde inicio
+    document.body.appendChild(n);
+    nubes.push(n);
+}
+
+async function iniciar() {
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    const ctx = new AudioContext();
+    const src = ctx.createMediaStreamSource(stream);
+    const analyser = ctx.createAnalyser();
+
+    src.connect(analyser);
+    analyser.fftSize = 256;
+
+    const data = new Uint8Array(analyser.frequencyBinCount);
+
+    function loop() {
+        analyser.getByteFrequencyData(data);
+
+        let suma = data.reduce((a,b)=>a+b,0);
+        let volumen = suma / data.length;
+
+        /* SUAVIZADO PRO */
+        suavizado = lerp(suavizado, volumen, 0.05);
+
+        actualizarEscena(suavizado);
+
+        requestAnimationFrame(loop);
+    }
+
+    loop();
+}
+
+function actualizarEscena(v) {
+
+    let silencio = Math.max(0, 100 - v * 2);
+
+    /* TEXTO DINÁMICO SUAVE */
+    let msg = document.getElementById("mensaje");
+    msg.style.opacity = 0.5;
+    setTimeout(()=>{
+        msg.innerText = silencio > 60 ? "Silencio 🌱 Aire limpio" : "Ruido 😷 Contaminación";
+        msg.style.opacity = 1;
+    },300);
+
+    /* BARRA */
+    let altura = Math.min(v * 2, 100);
+    document.getElementById("nivel").style.height = altura + "%";
+
+    /* PLANTAS */
+    plantas.forEach(p => {
+        let altura = lerp(parseFloat(p.style.height)||0, silencio * 1.2, 0.1);
+        p.style.height = altura + "px";
+
+        let verde = 120 + silencio;
+        let rojo = 180 - silencio;
+
+        let color = `rgb(${rojo},${verde},70)`;
+        p.style.background = color;
+
+        p.querySelectorAll(".hoja").forEach(h=>{
+            h.style.background = color;
+        });
+
+        let flor = p.querySelector(".flor");
+
+        if (altura > 100) {
+            if (!flor) {
+                let f = document.createElement("div");
+                f.className = "flor";
+                p.appendChild(f);
+            }
+        } else {
+            if (flor) flor.remove();
+        }
+    });
+
+    /* NUBES SUAVES */
+    nubes.forEach((n, i) => {
+        let target = 50 + (100 - silencio) * 1.5 + i*10;
+        let actual = parseFloat(n.style.top);
+        n.style.top = lerp(actual, target, 0.05) + "px";
+    });
+
+    /* FONDO SUAVE */
+    document.body.style.background = `linear-gradient(
+        rgb(${200 - silencio/2}, ${220 - silencio/3}, 255),
+        rgb(${230 - silencio/2}, ${255 - silencio/4}, 255)
+    )`;
+}
+
+iniciar();
+</script>
+
+</body>
+</html>
