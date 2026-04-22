@@ -283,14 +283,31 @@ function actualizar(v){
         }
     });
 
-    /* 🌤️ FONDO CELESTE */
-    let azul = 200 + silencio * 0.5;
+    /* 🌤️🌫️ FONDO DINÁMICO NATURAL */
 
-    document.body.style.background = `
-    linear-gradient(
-        rgb(${azul}, ${azul+20}, 255),
-        rgb(${azul+10}, ${azul+30}, 255)
-    )`;
+// 0 = contaminación total, 1 = aire limpio
+let t = silencio / 100;
+
+/* 🎨 COLORES BASE */
+let cieloLimpio = [135, 206, 250];   // celeste bonito
+let cieloSucio = [210, 180, 120];    // café/amarillo (smog)
+
+/* interpolación suave */
+let r = cieloSucio[0] + (cieloLimpio[0] - cieloSucio[0]) * t;
+let g = cieloSucio[1] + (cieloLimpio[1] - cieloSucio[1]) * t;
+let b = cieloSucio[2] + (cieloLimpio[2] - cieloSucio[2]) * t;
+
+/* parte baja del cielo */
+let r2 = r + 20;
+let g2 = g + 20;
+let b2 = b;
+
+/* aplicar fondo */
+document.body.style.background = `
+linear-gradient(
+    rgb(${r}, ${g}, ${b}),
+    rgb(${r2}, ${g2}, ${b2})
+)`;
 }
 
 iniciar();
