@@ -50,7 +50,6 @@ body {
     animation: viento 3s ease-in-out infinite;
 }
 
-/* 🌬️ VIENTO */
 @keyframes viento {
     0% { transform: rotate(0deg); }
     50% { transform: rotate(4deg); }
@@ -66,7 +65,7 @@ body {
     border: 1px solid rgba(0,0,0,0.3);
 }
 
-/* 🌷 TULIPÁN */
+/* 🌷 TULIPÁN ROSA */
 .tulipan {
     position: absolute;
     top: -35px;
@@ -76,52 +75,39 @@ body {
     height: 25px;
     border-radius: 50% 50% 30% 30%;
     position: absolute;
+    background: pink;
     border: 1px solid rgba(0,0,0,0.3);
 }
 .tulipan .p1 { left:0; transform: rotate(-20deg); }
 .tulipan .p2 { left:8px; }
 .tulipan .p3 { left:16px; transform: rotate(20deg); }
 
-/* 🌼 MARGARITA (CORREGIDA) */
+/* 🌼 MARGARITAS (BIEN HECHAS) */
 .margarita {
     position: absolute;
     top: -35px;
-    width: 40px;
-    height: 40px;
+    width: 30px;
+    height: 30px;
 }
 
 .margarita .petalo {
+    position: absolute;
     width: 6px;
-    height: 16px;
+    height: 14px;
+    border-radius: 50%;
+    left: 50%;
+    top: 50%;
+    transform-origin: center -8px;
+    border: 1px solid rgba(0,0,0,0.3);
+}
+
+/* colores */
+.blanca .petalo {
     background: white;
-    border-radius: 50%;
-    position: absolute;
-    left: 50%;
-    top: 50%;
-    transform-origin: center -10px;
-    border: 1px solid rgba(0,0,0,0.3);
 }
 
-.margarita .centro {
-    width: 12px;
-    height: 12px;
+.amarilla .petalo {
     background: gold;
-    border-radius: 50%;
-    position: absolute;
-    border: 1px solid rgba(0,0,0,0.3);
-    left: 50%;
-    top: 50%;
-    transform: translate(-50%, -50%);
-}
-
-/* 🌺 FLOR SIMPLE */
-.simple {
-    position: absolute;
-    width: 20px;
-    height: 20px;
-    border-radius: 50%;
-    top: -25px;
-    border: 1px solid rgba(0,0,0,0.3);
 }
 
 /* ☁️ NUBES */
@@ -184,41 +170,43 @@ for(let i=0;i<6;i++){
 /* 🌸 FLORES */
 function crearFlor(){
     let tipo=Math.floor(Math.random()*3);
-    let colores=["#ff4d6d","#ff85a1","#f72585","#b5179e","#7209b7"];
 
+    // 🌷 tulipán rosa
     if(tipo===0){
         let f=document.createElement("div");
         f.className="tulipan";
         for(let i=0;i<3;i++){
             let p=document.createElement("div");
             p.className="petalo p"+(i+1);
-            p.style.background=colores[Math.floor(Math.random()*colores.length)];
             f.appendChild(p);
         }
         return f;
     }
 
+    // 🌼 margarita blanca
     if(tipo===1){
         let f=document.createElement("div");
-        f.className="margarita";
+        f.className="margarita blanca";
 
         for(let i=0;i<10;i++){
             let p=document.createElement("div");
             p.className="petalo";
-            p.style.transform = `rotate(${i * 36}deg) translate(0, -12px)`;
+            p.style.transform = `rotate(${i*36}deg) translate(0,-10px)`;
             f.appendChild(p);
         }
-
-        let c=document.createElement("div");
-        c.className="centro";
-        f.appendChild(c);
-
         return f;
     }
 
+    // 🌼 margarita amarilla
     let f=document.createElement("div");
-    f.className="simple";
-    f.style.background=colores[Math.floor(Math.random()*colores.length)];
+    f.className="margarita amarilla";
+
+    for(let i=0;i<10;i++){
+        let p=document.createElement("div");
+        p.className="petalo";
+        p.style.transform = `rotate(${i*36}deg) translate(0,-10px)`;
+        f.appendChild(p);
+    }
     return f;
 }
 
@@ -278,6 +266,7 @@ function actualizar(v){
         }
     });
 
+    /* ☁️ NUBES */
     nubes.forEach(n=>{
         let actual=parseFloat(n.style.top);
 
@@ -294,14 +283,13 @@ function actualizar(v){
         }
     });
 
-    /* 🌤️ FONDO SUAVE */
-    let cielo = 220 + silencio * 0.2;
-    let suelo = 240 + silencio * 0.1;
+    /* 🌤️ FONDO CELESTE */
+    let azul = 200 + silencio * 0.5;
 
     document.body.style.background = `
     linear-gradient(
-        rgb(${cielo}, ${cielo+10}, 255),
-        rgb(${suelo}, ${suelo+5}, ${suelo})
+        rgb(${azul}, ${azul+20}, 255),
+        rgb(${azul+10}, ${azul+30}, 255)
     )`;
 }
 
