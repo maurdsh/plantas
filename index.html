@@ -337,7 +337,18 @@ function actualizar(v, musica, ruido){
 
     document.getElementById("timer").innerText =
         Math.ceil(tiempoRestante)+"s";
-    document.getElementById("nivel").style.height = Math.min(v*2,100)+"%";
+    document.getElementById("nivel").style.height = Math.min(v*5,100)+"%";
+
+    let nivelBarra = v * 4;
+
+let color = "green";
+
+if(nivelBarra > 60) color = "red";
+else if(nivelBarra > 30) color = "yellow";
+
+let barra = document.getElementById("nivel");
+barra.style.height = Math.min(nivelBarra,100)+"%";
+barra.style.background = color;
 
     if(!pausadoLocal){
     if(silencio>60){
