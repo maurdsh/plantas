@@ -363,11 +363,7 @@ function actualizar(v, musica, ruido){
     if(!pausadoLocal){
         tiempoRestante = Math.max(0, tiempoRestante - delta);
     }
-
-   document.getElementById("timer").innerText =
-    formatearTiempo(Math.max(0, tiempoRestante));
-        : "0s";
-
+      
     let mensaje = document.getElementById("mensaje");
 
 if(silencio > 60){
