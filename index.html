@@ -278,7 +278,10 @@ function crearFlor(){
 /* 🎤 INICIAR */
 async function iniciarActividad(){
     let min = parseInt(document.getElementById("tiempoInput").value);
-    if(!min || min<=0){ alert("Tiempo inválido"); return; }
+    if(!min || min<=0){ 
+        alert("Tiempo inválido"); 
+        return; 
+    }
 
     tiempoTotal = min * 60;
     tiempoRestante = tiempoTotal;
@@ -288,35 +291,40 @@ async function iniciarActividad(){
     document.getElementById("configPanel").style.display="none";
     document.getElementById("controles").style.display="block";
 
+    // 🎧 AUDIO
+    const musica = document.getElementById("musica");
+    const ruido = document.getElementById("ruido");
+
+    try {
+        await musica.play();
+        await ruido.play();
+    } catch(e){
+        console.log("Autoplay bloqueado:", e);
+    }
+
+    // 🎤 MICROFONO
     const stream = await navigator.mediaDevices.getUserMedia({audio:true});
     const ctx = new AudioContext();
     const src = ctx.createMediaStreamSource(stream);
     const analyser = ctx.createAnalyser();
 
     src.connect(analyser);
-    analyser.fftSize=256;
+    analyser.fftSize = 256;
 
-    const data=new Uint8Array(analyser.frequencyBinCount);
-
-    const musica = document.getElementById("musica");
-    const ruido = document.getElementById("ruido");
-
-    document.body.addEventListener("click", ()=>{
-        musica.play();
-        ruido.play();
-    });
+    const data = new Uint8Array(analyser.frequencyBinCount);
 
     function loop(){
-    analyser.getByteFrequencyData(data);
+        analyser.getByteFrequencyData(data);
 
-    let vol = data.reduce((a,b)=>a+b,0)/data.length;
+        let vol = data.reduce((a,b)=>a+b,0)/data.length;
 
-    suavizado = lerp(suavizado, vol, 0.05);
+        suavizado = lerp(suavizado, vol, 0.05);
 
-    actualizar(suavizado, musica, ruido);
+        actualizar(suavizado, musica, ruido);
 
-    requestAnimationFrame(loop);
-}
+        requestAnimationFrame(loop);
+    }
+
     loop();
 }
 
