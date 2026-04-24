@@ -465,8 +465,8 @@ function terminar(){
     let p = (tiempoSilencio/total)*100;
 
     let texto = p>=60
-        ? "🌱 "+p.toFixed(0)+"% Silencio ¡Excelente!"
-        : "😷 "+p.toFixed(0)+"% Silencio Intenten mejorar";
+        ? "🌱 "+p.toFixed(0)+"% Silencio ¡El aire está limpio!"
+        : "😷 "+p.toFixed(0)+"% Silencio ¡Intenten mejorar, quedó muy contaminado!";
 
     document.getElementById("resultadoTexto").innerText = texto;
     document.getElementById("resultadoPanel").style.display="flex";
