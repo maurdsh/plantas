@@ -337,6 +337,7 @@ const src = ctx.createMediaStreamSource(stream);
 /* 🔄 ACTUALIZAR */
 function actualizar(v, musica, ruido){
 
+    if(estado === "result") return;
     let pausadoLocal = (estado === "paused");
 
     let ahora = Date.now();
@@ -350,9 +351,21 @@ function actualizar(v, musica, ruido){
     }
 
     document.getElementById("timer").innerText =
-        tiempoRestante > 0
-        ? Math.ceil(tiempoRestante) + "s"
+    formatearTiempo(Math.max(0, tiempoRestante));
+    let m = Math.floor(seg / 60);
+    let s = Math.floor(seg % 60);
+
+    return String(m).padStart(2,'0') + ":" + String(s).padStart(2,'0');
+}
         : "0s";
+
+    let mensaje = document.getElementById("mensaje");
+
+if(silencio > 60){
+    mensaje.innerText = "Silencio 🍃 Aire limpio";
+}else{
+    mensaje.innerText = "Ruido 💨 Contaminación";
+}
 
     /* 🔊 BARRA */
     let nivelBarra = v * 6;
@@ -433,9 +446,9 @@ function actualizar(v, musica, ruido){
     `linear-gradient(rgb(${rSuave},${gSuave},${bSuave}),
                      rgb(${rSuave+30},${gSuave+20},${bSuave}))`;
 
-    if(tiempoRestante<=0){
-        terminar();
-    }
+    if(tiempoRestante <= 0 && estado === "run"){
+    terminar();
+}
 }
 
 /* 🧮 RESULTADO */
