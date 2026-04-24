@@ -281,13 +281,6 @@ function crearFlor(){
     }
     return f;
 }
-
-    function formatearTiempo(seg){
-    let m = Math.floor(seg / 60);
-    let s = Math.floor(seg % 60);
-
-    return String(m).padStart(2,'0') + ":" + String(s).padStart(2,'0');
-}
     
 /* 🎤 INICIAR */
 async function iniciarActividad(){
@@ -361,8 +354,11 @@ function actualizar(v, musica, ruido){
     let silencio = Math.max(0,100-v*2);
 
     if(!pausadoLocal){
-        tiempoRestante = Math.max(0, tiempoRestante - delta);
-    }
+    tiempoRestante = Math.max(0, tiempoRestante - delta);
+}
+
+document.getElementById("timer").innerText =
+    formatearTiempo(Math.max(0, tiempoRestante));
       
     let mensaje = document.getElementById("mensaje");
 
@@ -478,6 +474,7 @@ function terminar(){
 /* ⏸️ */
 function pausar(){
     estado = estado==="paused" ? "run" : "paused";
+    ultimoFrame = Date.now(); // evita salto de tiempo
 }
 
 /* 🔄 */
