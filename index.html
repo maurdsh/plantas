@@ -296,8 +296,8 @@ async function iniciarActividad(){
     const ruido = document.getElementById("ruido");
 
     try {
-        await musica.play();
-        await ruido.play();
+        musica.play().catch(()=>{});
+ruido.play().catch(()=>{});
     } catch(e){
         console.log("Autoplay bloqueado:", e);
     }
@@ -305,7 +305,13 @@ async function iniciarActividad(){
     // 🎤 MICROFONO
     const stream = await navigator.mediaDevices.getUserMedia({audio:true});
     const ctx = new AudioContext();
-    const src = ctx.createMediaStreamSource(stream);
+
+// 🔑 ACTIVAR CONTEXTO DE AUDIO (MUY IMPORTANTE)
+if (ctx.state === "suspended") {
+    await ctx.resume();
+}
+
+const src = ctx.createMediaStreamSource(stream);
     const analyser = ctx.createAnalyser();
 
     src.connect(analyser);
