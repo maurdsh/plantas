@@ -321,43 +321,43 @@ async function iniciarActividad(){
 }
 
 /* 🔄 ACTUALIZAR */
-function actualizar(v, musica, ruido){
+let pausadoLocal = (estado === "paused");
 
-    let pausadoLocal = (estado === "paused");
+let ahora = Date.now();
+let delta = (ahora - ultimoFrame)/1000;
+ultimoFrame = ahora;
 
-    let ahora = Date.now();
-    let delta = (ahora - ultimoFrame)/1000;
-    ultimoFrame = ahora;
+let silencio = Math.max(0,100-v*2);
 
-    let silencio = Math.max(0,100-v*2);
-
-    if(!pausadoLocal){
-    tiempoRestante -= delta;
+if(!pausadoLocal){
+    tiempoRestante = Math.max(0, tiempoRestante - delta);
 }
 
-    document.getElementById("timer").innerText =
-        Math.ceil(tiempoRestante)+"s";
-    document.getElementById("nivel").style.height = Math.min(v*5,100)+"%";
+document.getElementById("timer").innerText =
+    tiempoRestante > 0
+    ? Math.ceil(tiempoRestante) + "s"
+    : "0s";
 
-    let nivelBarra = v * 4;
+/* 🔊 BARRA */
+let nivelBarra = v * 6;
+nivelBarra = Math.max(0, nivelBarra - 10);
+nivelBarra = Math.min(nivelBarra, 100);
 
 let color = "green";
-
 if(nivelBarra > 60) color = "red";
 else if(nivelBarra > 30) color = "yellow";
 
-let barra = document.getElementById("nivel");
-barra.style.height = Math.min(nivelBarra,100)+"%";
+barra.style.height = nivelBarra + "%";
 barra.style.background = color;
 
-    if(!pausadoLocal){
-    if(silencio>60){
+/* 📊 CONTEO */
+if(!pausadoLocal){
+    if(silencio > 60){
         tiempoSilencio += delta;
     } else {
         tiempoRuido += delta;
     }
 }
-
     /* AUDIO */
     let nivel = silencio/100;
     musica.volume = nivel*0.8;
