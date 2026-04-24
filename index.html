@@ -9,21 +9,22 @@ body {
     margin: 0;
     overflow: hidden;
     height: 100vh;
-    font-family: Arial;
-    transition: background 2s ease;
+    font-family: Arial, sans-serif;
+    transition: background 1.5s ease;
 }
 
-/* TEXTO */
+/* TEXTO SUPERIOR */
 #mensaje {
     position: absolute;
-    top: 20px;
+    top: 15px;
     width: 100%;
     text-align: center;
     font-size: 22px;
     color: #333;
+    z-index: 5;
 }
 
-/* BARRA */
+/* BARRA SONIDO */
 #barra {
     position: fixed;
     right: 0;
@@ -36,7 +37,7 @@ body {
     bottom: 0;
     width: 100%;
     background: linear-gradient(#4caf50, #ffeb3b, #f44336);
-    transition: height 0.5s ease;
+    transition: height 0.4s ease;
 }
 
 /* 🌱 PLANTA */
@@ -56,7 +57,7 @@ body {
     100% { transform: rotate(0deg); }
 }
 
-/* 🌿 HOJAS */
+/* HOJAS */
 .hoja {
     position: absolute;
     width: 26px;
@@ -113,69 +114,113 @@ body {
     opacity: 0.7;
     transition: all 3s ease;
 }
-.nube.sucia { background: #555; }
+.nube.sucia {
+    background: #555;
+}
 
-#overlay {
+/* 🎛️ PANELES */
+#configPanel, #resultadoPanel {
     position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0,0,0,0.6);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 9999;
-    transition: opacity 1s ease;
+    top:0;
+    left:0;
+    width:100%;
+    height:100%;
+    background: rgba(0,0,0,0.7);
+    color:white;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    z-index:9999;
 }
 
-#overlay-texto {
-    color: white;
-    font-size: 28px;
-    text-align: center;
-    animation: latido 1.5s infinite;
+#resultadoPanel {
+    display:none;
 }
 
-@keyframes latido {
-    0% { transform: scale(1); }
-    50% { transform: scale(1.08); }
-    100% { transform: scale(1); }
+#configPanel input {
+    padding:10px;
+    font-size:18px;
+    margin:10px;
 }
 
+#configPanel button, #resultadoPanel button {
+    padding:10px 20px;
+    font-size:18px;
+    cursor:pointer;
+}
+
+/* CONTROLES */
+#controles {
+    display:none;
+    position: fixed;
+    top:10px;
+    left:10px;
+    z-index:10;
+}
+#timer {
+    font-size:24px;
+    color:white;
+    margin-top:5px;
+}
 </style>
 </head>
 
 <body>
 
-    <div id="overlay">
-    <div id="overlay-texto">Da click para comenzar 🌱</div>
-</div>
-
-<div id="mensaje">Termómetro de ruido 🌡️</div>
+<div id="mensaje">Configura la actividad 🌱</div>
 <div id="barra"><div id="nivel"></div></div>
 
-<!-- 🎧 AUDIO -->
+<!-- AUDIO -->
 <audio id="musica" loop>
     <source src="music.mp3" type="audio/mpeg">
 </audio>
-
 <audio id="ruido" loop>
     <source src="ruid.mp3" type="audio/mpeg">
 </audio>
 
+<!-- CONFIG -->
+<div id="configPanel">
+    <h2>¿Cuántos minutos?</h2>
+    <input type="number" id="tiempoInput" placeholder="Ej: 2" min="1">
+    <button onclick="iniciarActividad()">Comenzar</button>
+</div>
+
+<!-- RESULTADO -->
+<div id="resultadoPanel">
+    <h1 id="resultadoTexto"></h1>
+    <button onclick="reiniciarTodo()">Reintentar</button>
+</div>
+
+<!-- CONTROLES -->
+<div id="controles">
+    <button onclick="pausar()">⏸️</button>
+    <button onclick="reiniciarTodo()">🔄</button>
+    <div id="timer"></div>
+</div>
+
 <script>
-let suavizado = 0;
+let estado = "config";
+
 let plantas = [];
 let nubes = [];
 
-/* 🎨 COLOR SUAVE (ARREGLA TU ERROR) */
-let rSuave = 135;
-let gSuave = 206;
-let bSuave = 250;
+let suavizado = 0;
+
+let tiempoTotal = 0;
+let tiempoRestante = 0;
+
+let tiempoSilencio = 0;
+let tiempoRuido = 0;
+
+let pausado = false;
+let ultimoFrame = Date.now();
+
+let rSuave = 135, gSuave = 206, bSuave = 250;
 
 function lerp(a,b,t){ return a+(b-a)*t; }
 
-/* 🌱 PLANTAS */
+/* 🌱 CREAR PLANTAS */
 for(let i=0;i<6;i++){
     let p=document.createElement("div");
     p.className="planta";
@@ -218,20 +263,9 @@ function crearFlor(){
         return f;
     }
 
-    if(tipo===1){
-        let f=document.createElement("div");
-        f.className="margarita blanca";
-        for(let i=0;i<10;i++){
-            let p=document.createElement("div");
-            p.className="petalo";
-            p.style.transform = `rotate(${i*36}deg) translate(0,-10px)`;
-            f.appendChild(p);
-        }
-        return f;
-    }
-
     let f=document.createElement("div");
-    f.className="margarita amarilla";
+    f.className = Math.random() > 0.5 ? "margarita blanca" : "margarita amarilla";
+
     for(let i=0;i<10;i++){
         let p=document.createElement("div");
         p.className="petalo";
@@ -241,63 +275,79 @@ function crearFlor(){
     return f;
 }
 
-/* 🎤 MICRO + AUDIO */
-async function iniciar(){
+/* 🎤 INICIAR */
+async function iniciarActividad(){
+    let min = parseInt(document.getElementById("tiempoInput").value);
+    if(!min || min<=0){ alert("Tiempo inválido"); return; }
+
+    tiempoTotal = min * 60;
+    tiempoRestante = tiempoTotal;
+
+    estado = "run";
+
+    document.getElementById("configPanel").style.display="none";
+    document.getElementById("controles").style.display="block";
+
+    const stream = await navigator.mediaDevices.getUserMedia({audio:true});
+    const ctx = new AudioContext();
+    const src = ctx.createMediaStreamSource(stream);
+    const analyser = ctx.createAnalyser();
+
+    src.connect(analyser);
+    analyser.fftSize=256;
+
+    const data=new Uint8Array(analyser.frequencyBinCount);
 
     const musica = document.getElementById("musica");
     const ruido = document.getElementById("ruido");
-    const overlay = document.getElementById("overlay");
 
-    // 👇 esperar click del usuario
-    overlay.addEventListener("click", async () => {
-
-        // fade out visual
-        overlay.style.opacity = "0";
-        setTimeout(()=> overlay.style.display = "none", 1000);
-
-        // iniciar audio
+    document.body.addEventListener("click", ()=>{
         musica.play();
         ruido.play();
-
-        // 🎤 iniciar micrófono
-        const stream = await navigator.mediaDevices.getUserMedia({audio:true});
-        const ctx = new AudioContext();
-        const src = ctx.createMediaStreamSource(stream);
-        const analyser = ctx.createAnalyser();
-
-        src.connect(analyser);
-        analyser.fftSize = 256;
-
-        const data = new Uint8Array(analyser.frequencyBinCount);
-
-        function loop(){
-            analyser.getByteFrequencyData(data);
-            let vol=data.reduce((a,b)=>a+b,0)/data.length;
-
-            suavizado=lerp(suavizado,vol,0.05);
-            actualizar(suavizado, musica, ruido);
-
-            requestAnimationFrame(loop);
-        }
-
-        loop();
     });
+
+    function loop(){
+        if(estado !== "run" && estado !== "paused") return;
+
+        analyser.getByteFrequencyData(data);
+        let vol=data.reduce((a,b)=>a+b,0)/data.length;
+        suavizado=lerp(suavizado,vol,0.05);
+
+        actualizar(suavizado, musica, ruido);
+
+        requestAnimationFrame(loop);
+    }
+    loop();
 }
 
+/* 🔄 ACTUALIZAR */
 function actualizar(v, musica, ruido){
-    let silencio=Math.max(0,100-v*2);
 
-    document.getElementById("mensaje").innerText =
-        silencio>60 ? "Silencio 🌱 Aire limpio" : "Ruido 😷 Contaminación";
+    if(estado === "paused") return;
 
-    document.getElementById("nivel").style.height=Math.min(v*2,100)+"%";
+    let ahora = Date.now();
+    let delta = (ahora - ultimoFrame)/1000;
+    ultimoFrame = ahora;
 
-    /* 🎧 AUDIO */
-    let nivel = silencio / 100;
-    musica.volume = nivel * 0.8;
-    ruido.volume = (1 - nivel) * 0.5;
+    let silencio = Math.max(0,100-v*2);
 
-    /* 🌱 PLANTAS */
+    tiempoRestante -= delta;
+
+    document.getElementById("timer").innerText =
+        Math.ceil(tiempoRestante)+"s";
+
+    if(silencio>60){
+        tiempoSilencio += delta;
+    } else {
+        tiempoRuido += delta;
+    }
+
+    /* AUDIO */
+    let nivel = silencio/100;
+    musica.volume = nivel*0.8;
+    ruido.volume = (1-nivel)*0.5;
+
+    /* PLANTAS */
     plantas.forEach(p=>{
         let altura=lerp(parseFloat(p.style.height)||0,silencio*3,0.08);
         p.style.height=altura+"px";
@@ -322,44 +372,62 @@ function actualizar(v, musica, ruido){
         }
     });
 
-    /* ☁️ NUBES */
+    /* NUBES */
     nubes.forEach(n=>{
         let actual=parseFloat(n.style.top);
-        let objetivo=silencio>60 ? 30+Math.random()*40 : 150+Math.random()*120;
-
+        let objetivo=silencio>60?40:200;
         n.style.top=lerp(actual,objetivo,0.02)+"px";
 
-        if(silencio<60){
-            n.classList.add("sucia");
-        }else{
-            n.classList.remove("sucia");
-        }
+        if(silencio<60) n.classList.add("sucia");
+        else n.classList.remove("sucia");
     });
 
-    /* 🌤️ FONDO SUAVE */
-    let limpio = silencio / 100;
-    let nubesSucias = nubes.filter(n => n.classList.contains("sucia")).length;
-    let t = limpio * (1 - nubesSucias / nubes.length);
+    /* FONDO */
+    let limpio = silencio/100;
+    let sucioColor=[255,214,98];
+    let limpioColor=[135,206,250];
 
-    let limpioColor = [135,206,250];
-    let sucioColor = [255,214,98];
+    let rT=sucioColor[0]+(limpioColor[0]-sucioColor[0])*limpio;
+    let gT=sucioColor[1]+(limpioColor[1]-sucioColor[1])*limpio;
+    let bT=sucioColor[2]+(limpioColor[2]-sucioColor[2])*limpio;
 
-    let rTarget = sucioColor[0] + (limpioColor[0]-sucioColor[0])*t;
-    let gTarget = sucioColor[1] + (limpioColor[1]-sucioColor[1])*t;
-    let bTarget = sucioColor[2] + (limpioColor[2]-sucioColor[2])*t;
+    rSuave=lerp(rSuave,rT,0.03);
+    gSuave=lerp(gSuave,gT,0.03);
+    bSuave=lerp(bSuave,bT,0.03);
 
-    rSuave = lerp(rSuave, rTarget, 0.03);
-    gSuave = lerp(gSuave, gTarget, 0.03);
-    bSuave = lerp(bSuave, bTarget, 0.03);
+    document.body.style.background =
+    `linear-gradient(rgb(${rSuave},${gSuave},${bSuave}),
+                     rgb(${rSuave+30},${gSuave+20},${bSuave}))`;
 
-    document.body.style.background = `
-    linear-gradient(
-        rgb(${rSuave},${gSuave},${bSuave}),
-        rgb(${rSuave+30},${gSuave+20},${bSuave})
-    )`;
+    if(tiempoRestante<=0){
+        terminar();
+    }
 }
 
-iniciar();
+/* 🧮 RESULTADO */
+function terminar(){
+    estado="result";
+
+    let total = tiempoSilencio+tiempoRuido;
+    let p = (tiempoSilencio/total)*100;
+
+    let texto = p>=60 ?
+        "🌱 "+p.toFixed(0)+"% Silencio ¡Excelente!" :
+        "😷 "+p.toFixed(0)+"% Silencio Intenten mejorar";
+
+    document.getElementById("resultadoTexto").innerText=texto;
+    document.getElementById("resultadoPanel").style.display="flex";
+}
+
+/* ⏸️ */
+function pausar(){
+    estado = estado==="paused" ? "run" : "paused";
+}
+
+/* 🔄 */
+function reiniciarTodo(){
+    location.reload();
+}
 </script>
 
 </body>
