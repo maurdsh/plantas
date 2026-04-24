@@ -307,23 +307,23 @@ async function iniciarActividad(){
     });
 
     function loop(){
-        if(estado !== "run" && estado !== "paused") return;
+    analyser.getByteFrequencyData(data);
 
-        analyser.getByteFrequencyData(data);
-        let vol=data.reduce((a,b)=>a+b,0)/data.length;
-        suavizado=lerp(suavizado,vol,0.05);
+    let vol = data.reduce((a,b)=>a+b,0)/data.length;
 
-        actualizar(suavizado, musica, ruido);
+    suavizado = lerp(suavizado, vol, 0.05);
 
-        requestAnimationFrame(loop);
-    }
+    actualizar(suavizado, musica, ruido);
+
+    requestAnimationFrame(loop);
+}
     loop();
 }
 
 /* 🔄 ACTUALIZAR */
 function actualizar(v, musica, ruido){
 
-    if(estado === "paused") return;
+    let pausadoLocal = (estado === "paused");
 
     let ahora = Date.now();
     let delta = (ahora - ultimoFrame)/1000;
@@ -331,16 +331,21 @@ function actualizar(v, musica, ruido){
 
     let silencio = Math.max(0,100-v*2);
 
+    if(!pausadoLocal){
     tiempoRestante -= delta;
+}
 
     document.getElementById("timer").innerText =
         Math.ceil(tiempoRestante)+"s";
+    document.getElementById("nivel").style.height = Math.min(v*2,100)+"%";
 
+    if(!pausadoLocal){
     if(silencio>60){
         tiempoSilencio += delta;
     } else {
         tiempoRuido += delta;
     }
+}
 
     /* AUDIO */
     let nivel = silencio/100;
