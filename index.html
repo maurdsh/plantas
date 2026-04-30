@@ -378,13 +378,31 @@ if(silencio > 60){
     nivelBarra = Math.max(0, nivelBarra - 10);
     nivelBarra = Math.min(nivelBarra, 100);
 
-    let color = "green";
-    if(nivelBarra > 60) color = "red";
-    else if(nivelBarra > 30) color = "yellow";
+    /* 🔊 BARRA Color*/
+    let nivelBarra = v * 6;
+    nivelBarra = Math.max(0, nivelBarra - 10);
+    nivelBarra = Math.min(nivelBarra, 100);
 
+    // 🎨 COLOR DINÁMICO
+    let r, g;
+    
+    if (nivelBarra < 50) {
+        r = Math.floor((nivelBarra / 50) * 255);
+        g = 255;
+    } else {
+        r = 255;
+        g = Math.floor(255 - ((nivelBarra - 50) / 50) * 255);
+    }
+
+    let color = `rgb(${r}, ${g}, 0)`;
+    
     let barra = document.getElementById("nivel");
     barra.style.height = nivelBarra + "%";
     barra.style.background = color;
+        
+        let barra = document.getElementById("nivel");
+        barra.style.height = nivelBarra + "%";
+        barra.style.background = color;
 
     /* 📊 CONTEO */
     if(!pausadoLocal){
