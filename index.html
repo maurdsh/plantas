@@ -167,6 +167,22 @@ body {
              1px -1px 0 black,
              -1px -1px 0 black
 }
+
+    #pausaOverlay{
+    position: fixed;
+    top:0;
+    left:0;
+    width:100%;
+    height:100%;
+    display:none;
+    justify-content:center;
+    align-items:center;
+    font-size:60px;
+    color:white;
+    background: rgba(0,0,0,0.6);
+    z-index:9998;
+    text-shadow: 2px 2px 5px black;
+}
 </style>
 </head>
 
@@ -192,6 +208,7 @@ body {
 
 <!-- RESULTADO -->
 <div id="resultadoPanel">
+    <div id="pausaOverlay">⏸️ PAUSA</div>
     <h1 id="resultadoTexto"></h1>
     <button onclick="reiniciarTodo()">Reintentar</button>
 </div>
@@ -199,6 +216,7 @@ body {
 <!-- CONTROLES -->
 <div id="controles">
     <button onclick="pausar()">⏸️</button>
+    <button onclick="terminarManual()">⏹️</button>
     <button onclick="reiniciarTodo()">🔄</button>
     <div id="timer"></div>
 </div>
@@ -490,13 +508,33 @@ function terminar(){
 
 /* ⏸️ */
 function pausar(){
-    estado = estado==="paused" ? "run" : "paused";
-    ultimoFrame = Date.now(); // evita salto de tiempo
+    const musica = document.getElementById("musica");
+    const ruido = document.getElementById("ruido");
+    const overlay = document.getElementById("pausaOverlay");
+
+    if(estado === "paused"){
+        estado = "run";
+        overlay.style.display = "none";
+        musica.play().catch(()=>{});
+        ruido.play().catch(()=>{});
+    }else{
+        estado = "paused";
+        overlay.style.display = "flex";
+        musica.pause();
+        ruido.pause();
+    }
+
+    ultimoFrame = Date.now();
 }
 
 /* 🔄 */
 function reiniciarTodo(){
     location.reload();
+}
+
+/*🔚*/
+    function terminarManual(){
+    terminar();
 }
 </script>
 
