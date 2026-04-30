@@ -156,7 +156,7 @@ body {
     position: fixed;
     top:10px;
     left:10px;
-    z-index:10;
+    z-index:10000; /* 👈 MÁS ALTO QUE EL OVERLAY */
 }
 #timer {
     font-size:24px;
@@ -184,8 +184,12 @@ body {
     text-shadow: 2px 2px 5px black;
     pointer-events: none;
 }
-    body.pausado * {
+    body.pausado .planta,
+    body.pausado .nube {
     animation-play-state: paused !important;
+}
+    body.pausado * {
+    transition: none !important;
 }
 </style>
 </head>
@@ -375,6 +379,8 @@ const src = ctx.createMediaStreamSource(stream);
 function actualizar(v, musica, ruido){
 
     if(estado === "result") return;
+    if(estado === "paused") return; // 👈 IMPORTANTE
+
     let pausadoLocal = (estado === "paused");
 
     let ahora = Date.now();
