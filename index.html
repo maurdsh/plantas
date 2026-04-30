@@ -182,6 +182,10 @@ body {
     background: rgba(0,0,0,0.6);
     z-index:9998;
     text-shadow: 2px 2px 5px black;
+    pointer-events: none;
+}
+    body.pausado * {
+    animation-play-state: paused !important;
 }
 </style>
 </head>
@@ -530,11 +534,15 @@ function pausar(){
     if(estado === "paused"){
         estado = "run";
         overlay.style.display = "none";
+        document.body.classList.remove("pausado");
+
         musica.play().catch(()=>{});
         ruido.play().catch(()=>{});
     }else{
         estado = "paused";
         overlay.style.display = "flex";
+        document.body.classList.add("pausado");
+
         musica.pause();
         ruido.pause();
     }
