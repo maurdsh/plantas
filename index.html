@@ -198,6 +198,9 @@ body {
 <audio id="ruido" loop>
     <source src="ruid.mp3" type="audio/mpeg">
 </audio>
+    <audio id="trompeta">
+    <source src="trompeta.mp3" type="audio/mpeg">
+</audio>
 
 <!-- CONFIG -->
 <div id="configPanel">
@@ -485,7 +488,7 @@ barra.style.background = color;
     if(tiempoRestante <= 0 && estado === "run"){
     terminar();
 }
-}
+
 
 /* 🧮 RESULTADO */
 function terminar(){
@@ -504,6 +507,11 @@ function terminar(){
 
     document.getElementById("resultadoTexto").innerText = texto;
     document.getElementById("resultadoPanel").style.display="flex";
+
+    // 🎺 SONIDO FINAL
+    const trompeta = document.getElementById("trompeta");
+    trompeta.currentTime = 0;
+    trompeta.play().catch(()=>{});
 }
 
 /* ⏸️ */
