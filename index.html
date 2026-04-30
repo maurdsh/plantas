@@ -191,6 +191,8 @@ body {
 <div id="mensaje">Termómetro de ruido 🌡️</div>
 <div id="barra"><div id="nivel"></div></div>
 
+<div id="pausaOverlay">⏸️ PAUSA</div>
+
 <!-- AUDIO -->
 <audio id="musica" loop>
     <source src="music.mp3" type="audio/mpeg">
@@ -211,7 +213,6 @@ body {
 
 <!-- RESULTADO -->
 <div id="resultadoPanel">
-    <div id="pausaOverlay">⏸️ PAUSA</div>
     <h1 id="resultadoTexto"></h1>
     <button onclick="reiniciarTodo()">Reintentar</button>
 </div>
@@ -507,6 +508,12 @@ function terminar(){
 
     document.getElementById("resultadoTexto").innerText = texto;
     document.getElementById("resultadoPanel").style.display="flex";
+
+    const musica = document.getElementById("musica");
+    const ruido = document.getElementById("ruido");
+
+    musica.pause();
+    ruido.pause();
 
     // 🎺 SONIDO FINAL
     const trompeta = document.getElementById("trompeta");
